@@ -18,7 +18,7 @@ const __dirname = path.resolve();
 // Updated CORS setup to allow Vercel + Localhost
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://whisp-two.vercel.app",
+  "https://whisp-opal.vercel.app",
 ];
 
 app.use(cors({
