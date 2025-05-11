@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 // backend base URL in production
 const BASE_URL = import.meta.env.MODE === "development"
   ? "http://localhost:5001"
-  : "https://chat-app-full-stack-0pf9.onrender.com";
+  : "https://whisp-50wo.onrender.com";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
