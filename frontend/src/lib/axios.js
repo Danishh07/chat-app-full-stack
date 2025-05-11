@@ -7,4 +7,3 @@ export const axiosInstance = axios.create({
       : "https://chat-app-full-stack-0pf9.onrender.com/api",
   withCredentials: true,
 });
-
