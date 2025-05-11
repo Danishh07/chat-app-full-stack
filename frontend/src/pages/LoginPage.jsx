@@ -13,9 +13,14 @@ const LoginPage = () => {
   const { login, isLoggingIn } = useAuthStore();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    login(formData);
-  };
+  e.preventDefault();
+  try {
+    await login(formData);
+  } catch (err) {
+    console.error("Login failed:", err);
+  }
+};
+
 
   return (
     <div className="h-screen grid lg:grid-cols-2">
