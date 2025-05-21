@@ -34,9 +34,19 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
+      
+      // Save token to localStorage
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+      }
+      
       set({ authUser: res.data });
       toast.success("Account created successfully");
-      get().connectSocket();
+      
+      // Add a delay before connecting socket
+      setTimeout(() => {
+        get().connectSocket();
+      }, 500);
     } catch (error) {
       const message = error.response?.data?.message || "Signup failed!";
       toast.error(message);
@@ -49,9 +59,19 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/auth/login", data);
+      
+      // Save token to localStorage
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+      }
+      
       set({ authUser: res.data });
       toast.success("Logged in successfully");
-      get().connectSocket();
+      
+      // Add a small delay to allow token to be set
+      setTimeout(() => {
+        get().connectSocket();
+      }, 500);
     } catch (error) {
       const message = error.response?.data?.message || "Login failed!";
       toast.error(message);
@@ -63,6 +83,8 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
+      // Clear token from localStorage
+      localStorage.removeItem('token');
       set({ authUser: null });
       toast.success("Logged out successfully");
       get().disconnectSocket();
@@ -90,11 +112,18 @@ export const useAuthStore = create((set, get) => ({
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
+    // Get token for socket auth
+    const token = localStorage.getItem('token');
+
     const socket = io(BASE_URL, {
       query: {
         userId: authUser._id,
       },
+      auth: {
+        token: token // Include token for socket authentication
+      },
       transports: ["websocket"],
+      withCredentials: true
     });
 
     socket.connect();

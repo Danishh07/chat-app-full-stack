@@ -1,49 +1,62 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
-// Middleware to protect routes
 export const protectRoute = async (req, res, next) => {
   try {
-    let token;
+    let token = null;
 
-    // 1. Check for token in cookies
-    if (req.cookies?.jwt) {
-      token = req.cookies.jwt;
+    // 1. First check cookies (using the correct cookie name 'token')
+    if (req.cookies?.token) {
+      token = req.cookies.token;
+      console.log('Token found in cookies');
     }
-    // 2. Check for token in Authorization header (Bearer token)
-    else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    // 2. Fallback to Authorization header
+    else if (req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
+      console.log('Token found in Authorization header');
     }
 
-    // If no token is found, send an Unauthorized response
     if (!token) {
+      console.log('No token found in request. Cookies:', req.cookies);
       return res.status(401).json({ message: "Unauthorized - No Token Provided" });
     }
 
-    // Verify the token using JWT secret
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    // If the token is invalid, send an Unauthorized response
-    if (!decoded) {
-      return res.status(401).json({ message: "Unauthorized - Invalid Token" });
-    }
+    // 3. Verify token with enhanced error handling
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        console.error('JWT Verification Error:', err.name);
+        throw new Error('Invalid token');
+      }
+      return decoded;
+    });
 
-    // Find the user by the decoded userId and exclude password field
+    // 4. Find user - REMOVE .cache() method
     const user = await User.findById(decoded.userId).select("-password");
-    
-    // If user is not found, send a not found response
     if (!user) {
+      console.log('User not found for ID:', decoded.userId);
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Attach the user object to the request for further processing in the route
+    // 5. Attach user and token to request
     req.user = user;
-    
-    // Proceed to the next middleware or route handler
+    req.token = token;
+    console.log('Authenticated user:', user._id);
+
     next();
   } catch (error) {
-    // Log the error and send an Internal Server Error response
-    console.log("Error in protectRoute middleware: ", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("ProtectRoute Error:", {
+      message: error.message,
+      stack: error.stack,
+      cookies: req.cookies,
+      headers: req.headers
+    });
+
+    const status = error.message.includes('token') ? 401 : 500;
+    res.status(status).json({ 
+      message: error.message.includes('token') 
+        ? "Unauthorized - Invalid Token" 
+        : "Authentication failed",
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };

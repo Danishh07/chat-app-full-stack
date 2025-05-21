@@ -70,7 +70,7 @@ export const useChatStore = create((set, get) => ({
       axiosInstance.post(`/messages/mark-seen/${newMessage.senderId}`).catch(() => {});
     });
 
-    // ✅ NEW: Listen for message status updates (e.g., to show ✓✓ blue)
+    // Listen for message status updates (e.g., to show ✓✓ blue)
     socket.on("messageStatusUpdated", (updatedMessage) => {
       set({
         messages: get().messages.map((msg) =>

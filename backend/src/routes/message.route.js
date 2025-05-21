@@ -12,6 +12,6 @@ const router = express.Router();
 router.get("/users", protectRoute, getUsersForSidebar);
 router.get("/:id", protectRoute, getMessages);
 router.post("/send/:id", protectRoute, sendMessage);
-router.post("/mark-seen/:id", protectRoute, markMessagesSeen); // ✅ Updated route
+router.post("/mark-seen/:id", protectRoute, markMessagesSeen); 
 
 export default router;
