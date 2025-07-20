@@ -16,7 +16,7 @@ export const setTokenCookie = (res, token) => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : undefined,
+    domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 };
